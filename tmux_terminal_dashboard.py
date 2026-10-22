@@ -238,7 +238,7 @@ INDEX_HTML = r'''<!doctype html>
     document.getElementById("font-down").addEventListener("click", () => setFontSize(fontSize - 1));
     document.getElementById("font-up").addEventListener("click", () => setFontSize(fontSize + 1));
     document.querySelectorAll(".keybar [data-key]").forEach(button => button.addEventListener("click", () => sendInput(keySequence(button.dataset.key))));
-    document.querySelectorAll(".keybar [data-pane]").forEach(button => button.addEventListener("click", () => {
+    document.querySelectorAll(".pane-tools [data-pane]").forEach(button => button.addEventListener("click", () => {
       if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({type:"pane", action:button.dataset.pane}));
     }));
     terminalEl.addEventListener("touchstart", handleTouchStart, {capture:true, passive:true});
