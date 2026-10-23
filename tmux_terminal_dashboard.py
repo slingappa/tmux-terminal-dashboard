@@ -48,7 +48,10 @@ INDEX_HTML = r'''<!doctype html>
     .status { min-width:92px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; color:var(--muted); font-size:12px; text-align:center; white-space:nowrap; }
     .status[data-state="connected"] { color:var(--ok); }
     .status[data-state="warning"] { color:var(--warn); }
-    .terminal-wrap { min-height:0; padding:10px; padding-bottom:max(10px, env(safe-area-inset-bottom)); display:grid; grid-template-rows:auto auto auto minmax(0,1fr); gap:8px; overflow:hidden; background:#050814; }
+    .terminal-wrap { position:relative; min-height:0; padding:10px; padding-bottom:max(10px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:8px; overflow:hidden; background:#050814; }
+    .mobile-tools-toggle-row { display:none; }
+    .mobile-tools-toggle { min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 12px; font:inherit; font-weight:700; }
+    .tools-drawer { display:contents; }
     .terminal-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:38px; }
     .terminal-tools { display:none; align-items:center; gap:6px; margin-left:auto; }
     .terminal-tools button, .mobile-session select { min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 10px; font:inherit; font-weight:700; }
@@ -57,16 +60,24 @@ INDEX_HTML = r'''<!doctype html>
     .keybar button { flex:0 0 auto; min-width:42px; min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 10px; font:inherit; font-weight:700; }
     .pane-tools { display:none; gap:6px; min-width:0; }
     .pane-tools button { flex:1 1 0; min-width:0; min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 8px; font:inherit; font-weight:700; }
-    #terminal { width:100%; height:100%; min-height:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#000; touch-action:pan-y pinch-zoom; }
+    #terminal { width:100%; height:100%; min-height:0; flex:1 1 auto; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#000; touch-action:pan-y pinch-zoom; }
     .empty { height:100%; display:grid; place-items:center; color:var(--muted); border:1px dashed var(--line); border-radius:8px; font-size:14px; text-align:center; padding:24px; }
     @media (max-width:720px) {
+      .shell { grid-template-rows:minmax(0,1fr); }
       .topbar { grid-template-columns:1fr auto; gap:8px; padding-left:max(8px, env(safe-area-inset-left)); padding-right:max(8px, env(safe-area-inset-right)); }
+      .topbar { display:none; }
+      .shell[data-tools-open="true"] { grid-template-rows:auto minmax(0,1fr); }
+      .shell[data-tools-open="true"] .topbar { display:grid; }
       .brand { min-width:0; }
       .title { font-size:14px; }
       .subtitle { overflow:hidden; text-overflow:ellipsis; }
       .tabs { grid-column:1/-1; order:3; display:none; }
       .status { min-width:76px; padding:7px 8px; }
       .terminal-wrap { padding:6px; padding-bottom:max(6px, env(safe-area-inset-bottom)); gap:6px; }
+      .mobile-tools-toggle-row { display:flex; position:absolute; top:8px; right:8px; z-index:20; pointer-events:none; }
+      .mobile-tools-toggle { width:40px; height:40px; min-height:40px; padding:0; border-radius:50%; pointer-events:auto; font-size:18px; line-height:1; box-shadow:0 3px 12px rgba(0,0,0,.45); }
+      .tools-drawer { display:none; flex-direction:column; gap:6px; max-height:min(58vh, 360px); overflow-y:auto; padding:6px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+      .tools-drawer[data-open="true"] { display:flex; padding-top:52px; }
       .mobile-session { display:flex; flex:1 1 150px; min-width:0; }
       .mobile-session select { width:100%; min-width:0; }
       .terminal-tools { display:flex; flex:0 0 auto; }
@@ -85,31 +96,36 @@ INDEX_HTML = r'''<!doctype html>
       <div class="actions"><div class="status" id="status" data-state="warning">Loading</div><button class="icon-button" id="refresh" type="button" title="Refresh sessions" aria-label="Refresh sessions">&#x21bb;</button></div>
     </header>
     <main class="terminal-wrap">
-      <div class="terminal-toolbar">
-        <label class="mobile-session">Session <select id="session-select" aria-label="Select tmux session"></select></label>
-        <div class="terminal-tools" aria-label="Terminal controls">
-          <button id="scroll-up" type="button" title="Scroll terminal up" aria-label="Scroll terminal up">&#x25B2;</button>
-          <button id="scroll-down" type="button" title="Scroll terminal down" aria-label="Scroll terminal down">&#x25BC;</button>
-          <button id="font-down" type="button" title="Decrease terminal text size" aria-label="Decrease terminal text size">A&#x2212;</button>
-          <button id="font-up" type="button" title="Increase terminal text size" aria-label="Increase terminal text size">A+</button>
+      <div class="mobile-tools-toggle-row">
+        <button id="tools-toggle" class="mobile-tools-toggle" type="button" aria-expanded="false" aria-label="Open tools" title="Open tools" aria-controls="tools-drawer"><span id="tools-chevron" aria-hidden="true">&#x25BE;</span></button>
+      </div>
+      <section id="tools-drawer" class="tools-drawer" aria-label="Terminal tools">
+        <div class="terminal-toolbar">
+          <label class="mobile-session">Session <select id="session-select" aria-label="Select tmux session"></select></label>
+          <div class="terminal-tools" aria-label="Terminal controls">
+            <button id="scroll-up" type="button" title="Scroll terminal up" aria-label="Scroll terminal up">&#x25B2;</button>
+            <button id="scroll-down" type="button" title="Scroll terminal down" aria-label="Scroll terminal down">&#x25BC;</button>
+            <button id="font-down" type="button" title="Decrease terminal text size" aria-label="Decrease terminal text size">A&#x2212;</button>
+            <button id="font-up" type="button" title="Increase terminal text size" aria-label="Increase terminal text size">A+</button>
+          </div>
         </div>
-      </div>
-      <div class="keybar" aria-label="Mobile terminal keys">
-        <button type="button" data-key="up" aria-label="Send Up arrow">&#x2191;</button>
-        <button type="button" data-key="down" aria-label="Send Down arrow">&#x2193;</button>
-        <button type="button" data-key="left" aria-label="Send Left arrow">&#x2190;</button>
-        <button type="button" data-key="right" aria-label="Send Right arrow">&#x2192;</button>
-        <button type="button" data-key="escape" aria-label="Send Escape">Esc</button>
-        <button type="button" data-key="tab" aria-label="Send Tab">Tab</button>
-        <button type="button" data-key="enter" aria-label="Send Enter">Enter</button>
-        <button type="button" data-key="ctrl-c" aria-label="Send Control C">Ctrl-C</button>
-      </div>
-      <div class="pane-tools" aria-label="Mobile tmux pane controls">
-        <button type="button" data-pane="previous" aria-label="Select previous tmux pane">&#x25C0; Pane</button>
-        <button type="button" data-pane="zoom" aria-label="Maximize or restore tmux pane">Zoom</button>
-        <button type="button" data-pane="next" aria-label="Select next tmux pane">Pane &#x25B6;</button>
-        <button type="button" data-pane="layout" aria-label="Cycle tmux pane layout">Layout</button>
-      </div>
+        <div class="keybar" aria-label="Mobile terminal keys">
+          <button type="button" data-key="up" aria-label="Send Up arrow">&#x2191;</button>
+          <button type="button" data-key="down" aria-label="Send Down arrow">&#x2193;</button>
+          <button type="button" data-key="left" aria-label="Send Left arrow">&#x2190;</button>
+          <button type="button" data-key="right" aria-label="Send Right arrow">&#x2192;</button>
+          <button type="button" data-key="escape" aria-label="Send Escape">Esc</button>
+          <button type="button" data-key="tab" aria-label="Send Tab">Tab</button>
+          <button type="button" data-key="enter" aria-label="Send Enter">Enter</button>
+          <button type="button" data-key="ctrl-c" aria-label="Send Control C">Ctrl-C</button>
+        </div>
+        <div class="pane-tools" aria-label="Mobile tmux pane controls">
+          <button type="button" data-pane="previous" aria-label="Select previous tmux pane">&#x25C0; Pane</button>
+          <button type="button" data-pane="zoom" aria-label="Maximize or restore tmux pane">Zoom</button>
+          <button type="button" data-pane="next" aria-label="Select next tmux pane">Pane &#x25B6;</button>
+          <button type="button" data-pane="layout" aria-label="Cycle tmux pane layout">Layout</button>
+        </div>
+      </section>
       <div id="terminal"></div>
     </main>
   </div>
@@ -119,12 +135,16 @@ INDEX_HTML = r'''<!doctype html>
     // The public gateway adds /u/<owner>/<profile> before the service path.
     // Resolve requests from the actual browser URL so that prefix is retained.
     const routePath = location.pathname.replace(/\/+$/, "");
+    const shell = document.querySelector(".shell");
     const tabsEl = document.getElementById("tabs");
     const sessionSelect = document.getElementById("session-select");
     const statusEl = document.getElementById("status");
     const countEl = document.getElementById("session-count");
     const terminalEl = document.getElementById("terminal");
     const refreshButton = document.getElementById("refresh");
+    const toolsToggle = document.getElementById("tools-toggle");
+    const toolsChevron = document.getElementById("tools-chevron");
+    const toolsDrawer = document.getElementById("tools-drawer");
     const savedFontSize = Number.parseInt(localStorage.getItem("tmux-dashboard-font-size") || "14", 10);
     let fontSize = Number.isFinite(savedFontSize) ? Math.max(10, Math.min(savedFontSize, 22)) : 14;
     const term = new Terminal({cursorBlink:true, convertEol:true, fontFamily:"Menlo, Consolas, monospace", fontSize, theme:{background:"#000", foreground:"#d8dee9", cursor:"#38bdf8", selectionBackground:"#334155"}});
@@ -140,6 +160,14 @@ INDEX_HTML = r'''<!doctype html>
     let reconnectTimer = null;
     let reconnectDelay = 1000;
     function setStatus(text, state) { statusEl.textContent = text; statusEl.dataset.state = state || "warning"; }
+    function setToolsOpen(open) {
+      toolsDrawer.dataset.open = open ? "true" : "false";
+      shell.dataset.toolsOpen = open ? "true" : "false";
+      toolsToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toolsToggle.setAttribute("aria-label", open ? "Close tools" : "Open tools");
+      toolsToggle.title = open ? "Close tools" : "Open tools";
+      toolsChevron.textContent = open ? "\u25B4" : "\u25BE";
+    }
     function wsURL(session) { const proto = location.protocol === "https:" ? "wss:" : "ws:"; return `${proto}//${location.host}${routePath}/ws?session=${encodeURIComponent(session)}`; }
     function sendResize() { if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({type:"resize", cols:term.cols, rows:term.rows})); }
     function renderTabs() {
@@ -233,6 +261,7 @@ INDEX_HTML = r'''<!doctype html>
     }
     function clearTouch() { touchState = null; }
     sessionSelect.addEventListener("change", () => connect(sessionSelect.value));
+    toolsToggle.addEventListener("click", () => setToolsOpen(toolsDrawer.dataset.open !== "true"));
     document.getElementById("scroll-up").addEventListener("click", () => sendWheel(-120));
     document.getElementById("scroll-down").addEventListener("click", () => sendWheel(120));
     document.getElementById("font-down").addEventListener("click", () => setFontSize(fontSize - 1));

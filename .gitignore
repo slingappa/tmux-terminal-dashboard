@@ -1,3 +1,27 @@
 __pycache__/
-node_modules/
 *.pyc
+*.pyo
+node_modules/
+
+# Local runtime artifacts
+server.log
+server.pid
+*.sock
+*.socket
+*.pid
+
+# Credentials and machine-specific configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.secret
+personal-gateway-service.*
+services.toml
+user-catalog.toml
+
+# Editor and OS files
+.DS_Store
+.idea/
+.vscode/
