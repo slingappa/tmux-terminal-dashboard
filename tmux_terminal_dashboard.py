@@ -50,19 +50,19 @@ INDEX_HTML = r'''<!doctype html>
     .status[data-state="warning"] { color:var(--warn); }
     .terminal-wrap { position:relative; min-height:0; padding:10px; padding-bottom:max(10px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:8px; overflow:hidden; background:#050814; }
     .mobile-tools-toggle-row { display:none; }
-    .mobile-tools-toggle { min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 12px; font:inherit; font-weight:700; }
+    .mobile-tools-toggle { min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 12px; font:inherit; font-weight:700; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     .tools-drawer { display:contents; }
     .terminal-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:38px; }
     .terminal-tools { display:none; align-items:center; gap:6px; margin-left:auto; }
-    .terminal-tools button, .mobile-session select { min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 10px; font:inherit; font-weight:700; }
+    .terminal-tools button, .mobile-session select { min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 10px; font:inherit; font-weight:700; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     .mobile-session { display:none; align-items:center; gap:8px; color:var(--muted); font-size:12px; }
     .keybar { display:none; gap:6px; overflow-x:auto; min-width:0; padding-bottom:1px; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x; }
-    .keybar button { flex:0 0 auto; min-width:42px; min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 10px; font:inherit; font-weight:700; }
+    .keybar button { flex:0 0 auto; min-width:42px; min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 10px; font:inherit; font-weight:700; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     .pane-tools { display:none; gap:6px; min-width:0; }
-    .pane-tools button { flex:1 1 0; min-width:0; min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 8px; font:inherit; font-weight:700; }
+    .pane-tools button { flex:1 1 0; min-width:0; min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 8px; font:inherit; font-weight:700; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     #terminal { width:100%; height:100%; min-height:0; flex:1 1 auto; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#000; touch-action:pan-y pinch-zoom; }
     .empty { height:100%; display:grid; place-items:center; color:var(--muted); border:1px dashed var(--line); border-radius:8px; font-size:14px; text-align:center; padding:24px; }
-    @media (max-width:720px) {
+    @media (max-width:720px), (pointer:coarse) {
       .shell { grid-template-rows:minmax(0,1fr); }
       .topbar { grid-template-columns:1fr auto; gap:8px; padding-left:max(8px, env(safe-area-inset-left)); padding-right:max(8px, env(safe-area-inset-right)); }
       .topbar { display:none; }
@@ -74,9 +74,9 @@ INDEX_HTML = r'''<!doctype html>
       .tabs { grid-column:1/-1; order:3; display:none; }
       .status { min-width:76px; padding:7px 8px; }
       .terminal-wrap { padding:6px; padding-bottom:max(6px, env(safe-area-inset-bottom)); gap:6px; }
-      .mobile-tools-toggle-row { display:flex; position:absolute; top:8px; right:8px; z-index:20; pointer-events:none; }
-      .mobile-tools-toggle { width:40px; height:40px; min-height:40px; padding:0; border-radius:50%; pointer-events:auto; font-size:18px; line-height:1; box-shadow:0 3px 12px rgba(0,0,0,.45); }
-      .tools-drawer { display:none; flex-direction:column; gap:6px; max-height:min(58vh, 360px); overflow-y:auto; padding:6px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+      .mobile-tools-toggle-row { display:flex; position:absolute; top:8px; right:8px; z-index:40; pointer-events:none; }
+      .mobile-tools-toggle { width:42px; height:42px; min-height:42px; padding:0; border-radius:50%; pointer-events:auto; display:grid; place-items:center; font-size:18px; line-height:1; box-shadow:0 3px 12px rgba(0,0,0,.45); }
+      .tools-drawer { display:none; position:relative; z-index:30; flex-direction:column; gap:6px; max-height:min(58vh, 360px); overflow-y:auto; padding:6px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
       .tools-drawer[data-open="true"] { display:flex; padding-top:52px; }
       .mobile-session { display:flex; flex:1 1 150px; min-width:0; }
       .mobile-session select { width:100%; min-width:0; }
@@ -216,6 +216,8 @@ INDEX_HTML = r'''<!doctype html>
       currentSocket.onerror = () => { if (socket === currentSocket) setStatus("Reconnecting", "warning"); };
     }
     function sendWheel(deltaY) {
+      const lines = Math.max(1, Math.round(Math.abs(deltaY) / 40)) * Math.sign(deltaY);
+      if (typeof term.scrollLines === "function") { term.scrollLines(lines); return; }
       const element = term.element;
       if (!element) return;
       element.dispatchEvent(new WheelEvent("wheel", {deltaY, deltaMode:0, bubbles:true, cancelable:true}));
@@ -224,6 +226,17 @@ INDEX_HTML = r'''<!doctype html>
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({type:"input", data}));
         term.focus();
+      } else {
+        setStatus("Reconnecting", "warning");
+        scheduleReconnect();
+      }
+    }
+    function sendPaneAction(action) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({type:"pane", action}));
+      } else {
+        setStatus("Reconnecting", "warning");
+        scheduleReconnect();
       }
     }
     function keySequence(key) {
@@ -267,9 +280,7 @@ INDEX_HTML = r'''<!doctype html>
     document.getElementById("font-down").addEventListener("click", () => setFontSize(fontSize - 1));
     document.getElementById("font-up").addEventListener("click", () => setFontSize(fontSize + 1));
     document.querySelectorAll(".keybar [data-key]").forEach(button => button.addEventListener("click", () => sendInput(keySequence(button.dataset.key))));
-    document.querySelectorAll(".pane-tools [data-pane]").forEach(button => button.addEventListener("click", () => {
-      if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({type:"pane", action:button.dataset.pane}));
-    }));
+    document.querySelectorAll(".pane-tools [data-pane]").forEach(button => button.addEventListener("click", () => sendPaneAction(button.dataset.pane)));
     terminalEl.addEventListener("touchstart", handleTouchStart, {capture:true, passive:true});
     terminalEl.addEventListener("touchmove", handleTouchMove, {capture:true, passive:false});
     terminalEl.addEventListener("touchend", clearTouch, {capture:true, passive:true});
