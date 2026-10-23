@@ -52,13 +52,13 @@ INDEX_HTML = r'''<!doctype html>
     .mobile-tools-toggle-row { display:none; }
     .mobile-tools-toggle { min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 12px; font:inherit; font-weight:700; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     .tools-drawer { display:contents; }
-    .terminal-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:38px; }
+    .terminal-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:38px; flex:0 0 auto; }
     .terminal-tools { display:none; align-items:center; gap:6px; margin-left:auto; }
     .terminal-tools button, .mobile-session select { min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 10px; font:inherit; font-weight:700; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     .mobile-session { display:none; align-items:center; gap:8px; color:var(--muted); font-size:12px; }
-    .keybar { display:none; gap:6px; overflow-x:auto; min-width:0; padding-bottom:1px; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x; }
+    .keybar { display:none; gap:6px; overflow-x:auto; min-width:0; padding-bottom:1px; flex:0 0 auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x; }
     .keybar button { flex:0 0 auto; min-width:42px; min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 10px; font:inherit; font-weight:700; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
-    .pane-tools { display:none; gap:6px; min-width:0; }
+    .pane-tools { display:none; gap:6px; min-width:0; flex:0 0 auto; }
     .pane-tools button { flex:1 1 0; min-width:0; min-height:40px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); color:var(--text); padding:0 8px; font:inherit; font-weight:700; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     #terminal { width:100%; height:100%; min-height:0; flex:1 1 auto; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#000; touch-action:pan-y pinch-zoom; }
     .empty { height:100%; display:grid; place-items:center; color:var(--muted); border:1px dashed var(--line); border-radius:8px; font-size:14px; text-align:center; padding:24px; }
@@ -78,12 +78,15 @@ INDEX_HTML = r'''<!doctype html>
       .mobile-tools-toggle { width:42px; height:42px; min-height:42px; padding:0; border-radius:50%; pointer-events:auto; display:grid; place-items:center; font-size:18px; line-height:1; box-shadow:0 3px 12px rgba(0,0,0,.45); }
       .tools-drawer { display:none; position:relative; z-index:30; flex-direction:column; gap:6px; max-height:min(58vh, 360px); overflow-y:auto; padding:6px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
       .tools-drawer[data-open="true"] { display:flex; padding-top:52px; }
-      .mobile-session { display:flex; flex:1 1 150px; min-width:0; }
+      .terminal-toolbar { flex-direction:column; align-items:stretch; }
+      .mobile-session { display:flex; flex:0 0 auto; width:100%; min-width:0; }
       .mobile-session select { width:100%; min-width:0; }
-      .terminal-tools { display:flex; flex:0 0 auto; }
-      .terminal-tools button { min-width:40px; padding:0 8px; }
-      .keybar { display:flex; }
-      .pane-tools { display:flex; }
+      .terminal-tools { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); width:100%; margin-left:0; }
+      .terminal-tools button { min-width:0; width:100%; padding:0 4px; }
+      .keybar { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); overflow:visible; touch-action:manipulation; }
+      .keybar button { min-width:0; width:100%; padding:0 4px; }
+      .pane-tools { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .pane-tools button { width:100%; }
     }
     @media (min-width:721px) { .terminal-toolbar { min-height:0; } }
   </style>
