@@ -57,6 +57,12 @@ units and user lingering:
 The local unit files and gateway state remain outside this repository. They may
 contain host-specific paths and runtime state and must not be committed here.
 
+For the portable one-file gateway executable, set `TMPDIR`, `TEMP`, and `TMP` to
+a private persistent directory under the user's gateway state before starting
+the profile. PyInstaller extracts the Hub CA bundle there; using `/tmp` lets a
+host cleanup remove that bundle while the gateway processes are still alive,
+leaving the listener open but breaking Hub registration and reconciliation.
+
 ## Verification
 
 Run these commands as the deployment Unix owner:
